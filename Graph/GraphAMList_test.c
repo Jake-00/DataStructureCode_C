@@ -104,6 +104,7 @@ void printAMGraph (GraphAML *G)
     }
 }
 
+// locateEdge()查找图中是否存在这条边，claimFindOut()是lacate的附属函数
 void claimFindOut(EdgeNode *printOut)
 {
     printf("the edge exists in Graph: %d | %d\n", printOut->ivex, printOut->jvex);
@@ -181,7 +182,41 @@ Status inserNode (GraphAML *G)                                   // 在改写数
 
 }
 
-// 新建一条边
+
+
+// 新建一条边，inserExactNode()、connectEdge()是inserEdge()的附属函数
+
+Status inserExactNode (GraphAML *G, int vex_order)                                   // 在改写数据的时候，用传递参数改成 GraphAML const *G 会报错，这样写的意思是数据不可修改
+{
+    int flag = OK;
+    
+    char ch;
+    printf("please input data of new vex(char type):");
+    scanf("%c", &ch);
+    getchar();
+
+    G->amList[vex_order].data = ch;
+    G->amList[vex_order].firstedge = NULL;
+    G->numVertexes++;
+
+    return flag;
+
+}
+
+Status connectEdge (GraphAML *G, int vex1, int vex2)
+{
+    EdgeNode *p = (EdgeNode*)malloc(sizeof(EdgeNode));
+    p->ivex = vex1;
+    p->jvex = vex2;
+
+    // 头插法插入新的边表结点
+    p->iLink = G->amList[vex1].firstedge;
+    G->amList[vex1].firstedge = p;
+
+    p->jLink = G->amList[vex2].firstedge;
+    G->amList[vex2].firstedge = p;
+}
+
 Status insertEdge (GraphAML *G)
 {
     int flag = ERROR;
@@ -202,59 +237,108 @@ Status insertEdge (GraphAML *G)
     if ( ((vex1>(MAXVEX-1)) || (vex1<0) || (vex2>(MAXVEX-1)) || (vex2<0) || (vex1 == vex2)) )
     {
         printf("Error!Input vex is out of vex-list boundry.");
-    } else if ( vex1 <= G->numVertexes || vex2 <= G->numVertexes )
+    } else if ( vex1 < G->numVertexes && vex2 < G->numVertexes )
     {
+        EdgeNode *p = (EdgeNode*)malloc(sizeof(EdgeNode));
+        p->ivex = vex1;
+        p->jvex = vex2;
+
+        // 头插法插入新的边表结点
+        p->iLink = G->amList[vex1].firstedge;
+        G->amList[vex1].firstedge = p;
+
+        p->jLink = G->amList[vex2].firstedge;
+        G->amList[vex2].firstedge = p;
+        flag = OK;
+
+        {
+            // char verify;
+        // int cnt = 0;
+        // int maxTimes = 1;
+        // int mark = OK;                                                                            // 作为继续创建新的边结点的通行证
+
+        // if (vex1 == G->numVertexes || vex2 == G->numVertexes)
+        // {
+        //     // 这个for循环其实可以不用，为了更直观的操作才加的，不加for循环不通行条件只有1
+        //     for (; cnt>maxTimes; cnt++)
+        //     {
+        //         printf("Tips: input vex has not creat, do you wanna creat it or quit(y or n):");
+        //         scanf("%c", &verify);
+        //         getchar();
+
+        //         if ( verify == 'n' )
+        //         {
+        //             printf("quit the inserEdge() function coz' unexisting vex!");
+        //             mark = ERROR;                                                                    // 不通行条件1
+        //             break;
+        //         } else
+        //         {
+        //             printf("Now creating a new vex in Graph...\n");
+        //             inserNode(G);
+        //             printf("Finished!");
+        //             break;
+        //         }
+        //     }
+
+        //     // 超过最大输入次数提醒
+        //     if (cnt > maxTimes)
+        //     {
+        //         printf("Wrong input for continuing, now ends the function!");
+        //         mark = ERROR;                                                                        // 不通行条件2
+        //     }      
+        // }
+
+        // // 若通行令为OK，则创建新的边表结点
+        // if ( mark == OK )
+        // {
+        //     EdgeNode *p = (EdgeNode*)malloc(sizeof(EdgeNode));
+        //     p->ivex = vex1;
+        //     p->jvex = vex2;
+
+        //     // 头插法插入新的边表结点
+        //     p->iLink = G->amList[vex1].firstedge;
+        //     G->amList[vex1].firstedge = p;
+
+        //     p->jLink = G->amList[vex2].firstedge;
+        //     G->amList[vex2].firstedge = p;
+        //     flag = OK;
+        // }
+        }
+    } else 
+    {                                               // 输入的边顶点至少一个还没新建
         char verify;
-        int cnt = 0;
-        int maxTimes = 1;
-        int mark = OK;                                                                            // 作为继续创建新的边结点的通行证
+        printf("At least one vex has not creat yet, do you wanna creat it or quit(y or n):");
+        scanf("%c", &verify);
+        getchar();
 
-        if (vex1 == G->numVertexes || vex2 == G->numVertexes)
+        if ( verify!='y' )
         {
-            // 这个for循环其实可以不用，为了更直观的操作才加的，不加for循环不通行条件只有1
-            for (; cnt>maxTimes; cnt++)
-            {
-                printf("Tips: input vex has not creat, do you wanna creat it or quit(y or n):");
-                scanf("%c", &verify);
-                getchar();
-
-                if ( verify == 'n' )
-                {
-                    printf("quit the inserEdge() function coz' unexisting vex!");
-                    mark = ERROR;                                                                    // 不通行条件1
-                    break;
-                } else
-                {
-                    printf("Now creating a new vex in Graph...\n");
-                    inserNode(G);
-                    printf("Finished!");
-                    break;
-                }
-            }
-
-            // 超过最大输入次数提醒
-            if (cnt > maxTimes)
-            {
-                printf("Wrong input for continuing, now ends the function!");
-                mark = ERROR;                                                                        // 不通行条件2
-            }      
+            return flag;
         }
 
-        // 若通行令为OK，则创建新的边表结点
-        if ( mark == OK )
+        if ( vex1>=G->numVertexes && vex2<G->numVertexes)
         {
-            EdgeNode *p = (EdgeNode*)malloc(sizeof(EdgeNode));
-            p->ivex = vex1;
-            p->jvex = vex2;
-
-            // 头插法插入新的边表结点
-            p->iLink = G->amList[vex1].firstedge;
-            G->amList[vex1].firstedge = p;
-
-            p->jLink = G->amList[vex2].firstedge;
-            G->amList[vex2].firstedge = p;
-            flag = OK;
+            inserExactNode(G, vex1);
+        } else if (vex2>=G->numVertexes && vex1<G->numVertexes)
+        {
+            inserExactNode(G, vex2);
+        } else
+        {
+            inserExactNode(G, vex1);
+            inserExactNode(G, vex2);
         }
+        
+        EdgeNode *p = (EdgeNode*)malloc(sizeof(EdgeNode));
+        p->ivex = vex1;
+        p->jvex = vex2;
+
+        // 头插法插入新的边表结点
+        p->iLink = G->amList[vex1].firstedge;
+        G->amList[vex1].firstedge = p;
+
+        p->jLink = G->amList[vex2].firstedge;
+        G->amList[vex2].firstedge = p;
+        flag = OK;
     }
 
     return flag;
