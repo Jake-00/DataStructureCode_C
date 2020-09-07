@@ -246,8 +246,6 @@ Status insertEdge (GraphAML *G)
 
 
 
-
-
 int main(){
     GraphAML one;
     CreatALGraph(&one);

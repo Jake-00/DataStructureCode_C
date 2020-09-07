@@ -125,32 +125,46 @@ Status locateEdge (GraphAML *G, int vex1, int vex2)                             
     {
         while (alt)
         {
-            if ( alt->ivex == vex1 )
+            //
+            if ( (alt->ivex == vex1 && alt->jvex == vex2 ) || (alt->jvex == vex1 && alt->ivex == vex2) )
             {
-                if ( alt->jvex == vex2 )
-                {
-                    flag = OK;
-                    claimFindOut(alt);
-                    break;
-                } else
-                {
-                    alt = alt->iLink;
-                }
-            } else if ( alt->jvex == vex1 )
-            {
-                if ( alt->ivex == vex2 )
-                {
-                    flag = OK;
-                    claimFindOut(alt);
-                    break;
-                } else
-                {
-                    alt = alt->jLink;
-                }
-            } else 
-            {
+                flag = OK;
+                claimFindOut(alt);
                 break;
+            } else
+            {
+                if (alt->ivex == vex1)
+                    alt = alt->iLink;
+                else
+                    alt = alt->jLink;
             }
+
+            // if ( alt->ivex == vex1 )
+            // {
+            //     if ( alt->jvex == vex2 )
+            //     {
+            //         flag = OK;
+            //         claimFindOut(alt);
+            //         break;
+            //     } else
+            //     {
+            //         alt = alt->iLink;
+            //     }
+            // } else if ( alt->jvex == vex1 )
+            // {
+            //     if ( alt->ivex == vex2 )
+            //     {
+            //         flag = OK;
+            //         claimFindOut(alt);
+            //         break;
+            //     } else
+            //     {
+            //         alt = alt->jLink;
+            //     }
+            // } else 
+            // {
+            //     break;
+            // }
         }
     }
 
@@ -158,6 +172,28 @@ Status locateEdge (GraphAML *G, int vex1, int vex2)                             
         printf("the edge has not existed\n");
     return flag;
 } 
+
+Status locateEdge_recur (EdgeNode *e, int *vex1, int *vex2)                             // 递归实现
+{
+    if ( !e )
+    {
+        return 0;
+    }else if ((e->ivex == *vex1 && e->jvex == *vex2 ) || (e->jvex == *vex1 && e->ivex == *vex2))
+    {
+        claimFindOut(e);
+        return 1;
+    } else
+    {
+        if ( *vex1 == e->ivex)
+        {
+            locateEdge_recur(e->iLink, vex1, vex2);
+        }else
+        {
+            locateEdge_recur(e->jLink, vex1, vex2);
+        }
+    }
+    
+}
 
 // 插入新点
 Status inserNode (GraphAML *G)                                   // 在改写数据的时候，用传递参数改成 GraphAML const *G 会报错，这样写的意思是数据不可修改
@@ -344,7 +380,140 @@ Status insertEdge (GraphAML *G)
     return flag;
 }
 
+// 删除顶点
+Status deletVex (GraphAML *G)
+{
+    int flag = ERROR;
+    
 
+
+    return flag;
+}
+
+// 删除某条边
+
+
+Status deleteEdge (GraphAML *G, int vex1, int vex2)
+{
+    int flag = ERROR;
+    // int mark_retn;
+    // mark_retn = locateEdge(G, vex1, vex2);
+
+
+    EdgeNode *cur = G->amList[vex1].firstedge;
+    EdgeNode *pre = cur;
+    int cnt = 0;                                                    // 看循环赋值了几次
+    if ( !(vex1>MAXVEX-1|| vex1<0 || vex2>MAXVEX-1 || vex2<0) )                      // 如果输入的顶点有错误，则直接错误
+    {
+        while (cur)
+        {
+            //
+            if ( (cur->ivex == vex1 && cur->jvex == vex2 ) || (cur->jvex == vex1 && cur->ivex == vex2) )
+            {
+                claimFindOut(cur);
+                if (cnt<1)
+                {
+                    if ( cur->iLink )
+                    {
+                        if (cur->iLink->ivex == vex1 || cur->iLink->jvex == vex1)
+                        {
+                            pre = cur->iLink;
+                            free(cur);
+                            flag = OK;
+                            break;
+                        }
+                    }
+                    else if ( cur->jLink )
+                    {
+                        if (cur->jLink->ivex == vex1 || cur->jLink->jvex == vex1)
+                        {
+                            pre = cur->jLink;
+                            free(cur);
+                            flag = OK;
+                            break;
+                        }
+                    } else
+                    {
+                        pre = NULL;
+                    }
+                } else                                                            // 循环超过一次的时候
+                {
+                    if (pre->iLink == cur)
+                    {
+                        if ( cur->iLink )
+                        {
+                            if (cur->iLink->ivex == vex1 || cur->iLink->jvex == vex1)
+                            {
+                                pre->iLink = cur->iLink;
+                                free(cur);
+                                flag = OK;
+                                break;
+                            }
+                        }
+                        else if ( cur->jLink )
+                        {
+                            if (cur->jLink->ivex == vex1 || cur->jLink->jvex == vex1)
+                            {
+                                pre->iLink = cur->jLink;
+                                free(cur);
+                                flag = OK;
+                                break;
+                            }
+                        } else
+                        {
+                            pre->iLink = NULL;
+                            break;
+                        }
+                    } else
+                    {
+                        if ( cur->iLink )
+                        {
+                            if (cur->iLink->ivex == vex1 || cur->iLink->jvex == vex1)
+                            {
+                                pre->jLink = cur->iLink;
+                                free(cur);
+                                flag = OK;
+                                break;
+                            }
+                        }
+                        else if ( cur->jLink )
+                        {
+                            if (cur->jLink->ivex == vex1 || cur->jLink->jvex == vex1)
+                            {
+                                pre->jLink = cur->jLink;
+                                free(cur);
+                                flag = OK;
+                                break;
+                            }
+                        } else
+                        {
+                            pre->jLink = NULL;
+                            break;
+                        }
+                    }
+                    
+                }
+            } else
+            {
+                if (cur->ivex == vex1)
+                {
+                    pre = cur;
+                    cur = cur->iLink;
+                } else
+                {
+                    pre = cur;
+                    cur = cur->jLink;
+                }
+                    
+            }
+
+            cnt++;
+        }
+
+    }
+
+    return flag;
+}
 
 
 
@@ -358,13 +527,24 @@ int main(){
     printf("please input the edge you wanna search(1 0):");
     scanf("%d %d", &vex1_m, &vex2_m);
     getchar();
-    locateEdge(&one, vex1_m, vex2_m);
+    // locateEdge(&one, vex1_m, vex2_m);
+    locateEdge_recur(one.amList[vex1_m].firstedge, &vex1_m, &vex2_m);
 
+    /*
     inserNode(&one);
     printAMGraph(&one);
 
     insertEdge(&one);
     printAMGraph(&one);
+    */
+
+    // 删除边操作
+    /*
+    printf("please input the edge you wanna delete(1 0):");
+    scanf("%d %d", &vex1_m, &vex2_m);
+    getchar();
+    deleteEdge(&one, vex1_m, vex2_m);
+    */
 
     return 0;
 }
