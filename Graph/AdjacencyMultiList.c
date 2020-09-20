@@ -253,6 +253,7 @@ int main(){
     locateEdge(&one);
     inserNode(&one);
     printAMGraph(&one);
+    printf("test git"); 
 
     return 0;
 }
